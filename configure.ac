@@ -312,7 +312,6 @@ PLUMED_CONFIG_ENABLE([dlopen],[search for dlopen],[yes])
 PLUMED_CONFIG_ENABLE([dladdr],[search for dladdr],[yes])
 PLUMED_CONFIG_ENABLE([rtld_default],[search for RTLD_DEFAULT macro],[yes])
 PLUMED_CONFIG_ENABLE([subprocess],[search for functions needed to manage a subprocess],[yes])
-PLUMED_CONFIG_ENABLE([popen],[search for popen],[yes])
 PLUMED_CONFIG_ENABLE([execinfo],[search for execinfo],[yes])
 PLUMED_CONFIG_ENABLE([gsl],[search for gsl],[yes])
 PLUMED_CONFIG_ENABLE([boost_graph],[search for boost graph],[no])
@@ -448,6 +447,9 @@ then
    AC_MSG_WARN([Your compiler appears not to support C++17])
    AC_MSG_WARN([Please change compiler or make sure that everything works correctly])
 fi
+
+# We assume now that compiler supports C++11 library
+AC_DEFINE([__PLUMED_WRAPPER_LIBCXX11])
 
 AC_SUBST(disable_dependency_tracking)
 

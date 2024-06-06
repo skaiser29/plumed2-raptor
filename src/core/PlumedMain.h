@@ -68,6 +68,7 @@ class FileBase;
 class TypesafePtr;
 class IFile;
 class Units;
+class Keywords;
 class DataPassingTools;
 
 /**
@@ -297,7 +298,7 @@ public:
    and an MD engine, this is the right place
    Notice that this interface should always keep retro-compatibility
   */
-  void cmd(std::string_view key,const TypesafePtr & val=nullptr) override;
+  void cmd(std::string_view key,const TypesafePtr & val) override;
   ~PlumedMain();
   /**
     Turn on parse only mode to deactivate restart in all actions.
@@ -523,6 +524,8 @@ public:
   void plumedQuantityToMD( const std::string& unit, const double& eng, const TypesafePtr & m) const ;
 /// Take a typesafe pointer from the MD code and convert it to a double
   double MDQuantityToPLUMED( const std::string& unit, const TypesafePtr & m) const ;
+/// Get the keywords for a particular action
+  void getKeywordsForAction( const std::string& action, Keywords& keys ) const ;
 };
 
 /////

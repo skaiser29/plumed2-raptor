@@ -19,7 +19,7 @@
    You should have received a copy of the GNU Lesser General Public License
    along with plumed.  If not, see <http://www.gnu.org/licenses/>.
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-#include "ActionWithMatrix.h"
+#include "core/ActionWithMatrix.h"
 #include "core/ActionRegister.h"
 
 //+PLUMEDOC MCOLVAR NEIGHBORS
@@ -55,6 +55,7 @@ void Neighbors::registerKeywords( Keywords& keys ) {
   ActionWithMatrix::registerKeywords( keys ); keys.use("ARG");
   keys.add("compulsory","NLOWEST","0","in each row of the output matrix set the elements that correspond to the n lowest elements in each row of the input matrix equal to one");
   keys.add("compulsory","NHIGHEST","0","in each row of the output matrix set the elements that correspond to the n highest elements in each row of the input matrix equal to one");
+  keys.setValueDescription("a matrix in which the ij element is one if the ij-element of the input matrix is one of the NLOWEST/NHIGHEST elements on that row of the input matrix and zero otherwise");
 }
 
 Neighbors::Neighbors(const ActionOptions&ao):

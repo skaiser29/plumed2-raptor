@@ -19,7 +19,7 @@
    You should have received a copy of the GNU Lesser General Public License
    along with plumed.  If not, see <http://www.gnu.org/licenses/>.
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-#include "ActionWithMatrix.h"
+#include "core/ActionWithMatrix.h"
 #include "core/ActionRegister.h"
 #include "tools/Torsion.h"
 
@@ -55,6 +55,7 @@ void TorsionsMatrix::registerKeywords( Keywords& keys ) {
   ActionWithMatrix::registerKeywords(keys); keys.use("ARG");
   keys.add("atoms","POSITIONS1","the positions to use for the molecules specified using the first argument");
   keys.add("atoms","POSITIONS2","the positions to use for the molecules specified using the second argument");
+  keys.setValueDescription("the matrix of torsions between the two vectors of input directors");
 }
 
 TorsionsMatrix::TorsionsMatrix(const ActionOptions&ao):

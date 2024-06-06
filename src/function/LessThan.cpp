@@ -22,6 +22,7 @@
 #include "LessThan.h"
 #include "FunctionShortcut.h"
 #include "FunctionOfVector.h"
+#include "FunctionOfMatrix.h"
 #include "core/ActionRegister.h"
 
 #include <cmath>
@@ -47,10 +48,21 @@ Use a switching function to determine how many components of the vector are less
 */
 //+ENDPLUMEDOC
 
+//+PLUMEDOC COLVAR LESS_THAN_MATRIX
+/*
+Transform all the elements of a matrix using a switching function that is one when the input value is smaller than a threshold
+
+\par Examples
+
+*/
+//+ENDPLUMEDOC
+
 typedef FunctionShortcut<LessThan> LessThanShortcut;
 PLUMED_REGISTER_ACTION(LessThanShortcut,"LESS_THAN")
 typedef FunctionOfVector<LessThan> VectorLessThan;
 PLUMED_REGISTER_ACTION(VectorLessThan,"LESS_THAN_VECTOR")
+typedef FunctionOfMatrix<LessThan> MatrixLessThan;
+PLUMED_REGISTER_ACTION(MatrixLessThan,"LESS_THAN_MATRIX")
 
 void LessThan::registerKeywords(Keywords& keys) {
   keys.add("compulsory","NN","6","The n parameter of the switching function ");
@@ -61,6 +73,7 @@ void LessThan::registerKeywords(Keywords& keys) {
            "The following provides information on the \\ref switchingfunction that are available. "
            "When this keyword is present you no longer need the NN, MM, D_0 and R_0 keywords.");
   keys.addFlag("SQUARED",false,"is the input quantity the square of the value that you would like to apply the switching function to");
+  keys.setValueDescription("a function that is one if the input is less than a threshold");
 }
 
 void LessThan::read( ActionWithArguments* action ) {

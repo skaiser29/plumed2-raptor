@@ -30,6 +30,7 @@ namespace PLMD {
 void ActionShortcut::registerKeywords( Keywords& keys ) {
   Action::registerKeywords( keys );
   keys.add("hidden","IS_SHORTCUT","hidden keyword to tell if actions are shortcuts so that example generator can provide expansions of shortcuts");
+  keys.add("hidden","HAS_VALUES","this is used in json output to determine those actions that have values");
 }
 
 void ActionShortcut::readShortcutKeywords( const Keywords& keys, std::map<std::string,std::string>& keymap ) {
@@ -64,24 +65,56 @@ ActionShortcut::ActionShortcut(const ActionOptions&ao):
   } else label = ("@s" + s);
 }
 
-void ActionShortcut::readInputLine( const std::string& input ) {
+void ActionShortcut::readInputLine( const std::string& input, bool saveline ) {
   std::vector<std::string> words=Tools::getWords(input); Tools::interpretLabel(words);
   // Check if this action name has been registered
-  bool found = std::find(keywords.neededActions.begin(), keywords.neededActions.end(), words[0] )!=keywords.neededActions.end();
+  bool founds=false, found = std::find(keywords.neededActions.begin(), keywords.neededActions.end(), words[0] )!=keywords.neededActions.end();
   // Check if we are just calling something like SUM_VECTOR using just SUM.
   if( !found && words[0].find(getName())!=std::string::npos ) {
     for(unsigned j=0 ; j<keywords.actionNameSuffixes.size(); ++j) {
       if( (getName() + keywords.actionNameSuffixes[j])==words[0] ) { found=true; break; }
     }
+    founds=true;
   }
   if( found ) {
-    std::string f_input = input; savedInputLines.push_back( input );
+    std::string f_input = input; if( !founds && saveline ) addToSavedInputLines( input );
     if( keywords.exists("RESTART") ) {
       if( restart ) f_input += " RESTART=YES";
       if( !restart ) f_input += " RESTART=NO";
     }
     plumed.readInputLine( f_input );
+    if( !founds ) {
+      ActionWithValue* av=NULL;
+      for(auto pp=plumed.getActionSet().rbegin(); pp!=plumed.getActionSet().rend(); ++pp) {
+        av = pp->get()->castToActionWithValue();
+        if( !av ) continue ;
+        if( std::find(savedOutputs.begin(), savedOutputs.end(), av->getLabel() )!=savedOutputs.end() ) av=NULL;
+        break;
+      }
+      if( av ) {
+        std::string av_label = av->getLabel();
+        if( av_label == getShortcutLabel() ) savedOutputs.push_back( av_label );
+        else {
+          for(unsigned i=0; i<keywords.cnames.size(); ++i) {
+            if( av_label == getShortcutLabel() + "_" + keywords.cnames[i] ) savedOutputs.push_back( av_label );
+            else if( keywords.getOutputComponentFlag(keywords.cnames[i])!="default" ) {
+              std::string thisflag = keywords.getOutputComponentFlag(keywords.cnames[i]);
+              if( keywords.numbered(thisflag) && av_label.find(getShortcutLabel() + "_" + keywords.cnames[i])!=std::string::npos ) savedOutputs.push_back( av_label );
+            }
+          }
+        }
+      }
+    } else {
+      ActionWithValue* av = plumed.getActionSet()[plumed.getActionSet().size()-1]->castToActionWithValue();
+      if( !av ) error("shortcut is using suffix but action created is not ActionWithValue");
+      Keywords thiskeys; actionRegister().getKeywords( av->getName(), thiskeys );
+      if( thiskeys.getDisplayName()!=getName() ) error("mismatch between display name of hidden action " + thiskeys.getDisplayName() + " and shortcut that creates it " + getName() );
+    }
   } else error("requirement for action " + words[0] + " should be registered in registerKeywords function for shortcut action using keys.useAction");
+}
+
+void ActionShortcut::addCommentToShortcutOutput( const std::string& input ) {
+  savedInputLines.push_back( input );
 }
 
 std::string ActionShortcut::getUpdateLimits() const {
@@ -95,12 +128,63 @@ std::string ActionShortcut::getUpdateLimits() const {
   return f_input;
 }
 
+void ActionShortcut::addToSavedInputLines( const std::string& line ) {
+  std::vector<std::string> words = Tools::getWords(line); std::string actname;
+  if( words[0].find_first_of(":")!=std::string::npos) actname = words[1]; else actname = words[0];
+  if( !actionRegister().check(actname) ) error("found no action with name " + actname + " to create shortcut");
+  Keywords thiskeys; actionRegister().getKeywords( actname, thiskeys ); std::vector<std::string> numberedkeys;
+  for(unsigned i=0; i<thiskeys.size(); ++i ) {
+    if( thiskeys.numbered( thiskeys.getKeyword(i) ) ) numberedkeys.push_back( thiskeys.getKeyword(i) );
+  }
+  if( numberedkeys.size()>0 && actname!="CONCATENATE" ) {
+    std::string reducedline;
+    for(unsigned i=0; i<words.size(); ++i) {
+      bool notnumbered=true;
+      for(unsigned j=0; j<numberedkeys.size(); ++j) {
+        if( words[i].find(numberedkeys[j])!=std::string::npos && words[i].substr(0,numberedkeys[j].length()+1)!=numberedkeys[j]+"=" ) { notnumbered=false; break; }
+      }
+      if( notnumbered || words[i]==actname ) {
+        if( words[i].find(" ")!=std::string::npos) {
+          std::size_t eq=words[i].find_first_of("=");
+          reducedline += words[i].substr(0,eq) + "={" + words[i].substr(eq+1) + "} ";
+        } else reducedline += words[i] + " ";
+      }
+    }
+    std::vector<unsigned> ninstances( numberedkeys.size(), 0 );
+    for(unsigned j=0; j<numberedkeys.size(); ++j) {
+      for(unsigned i=1;; ++i) {
+        std::string num, val; Tools::convert(i, num);
+        bool found = Tools::parse(words, numberedkeys[j] + num, val );
+        if( !found) break ;
+        if( i<6 ) reducedline += numberedkeys[j] + num + "=" + val + " ";
+        else ninstances[j]++;
+      }
+    }
+    bool outputcomment=false;
+    for(unsigned j=0; j<numberedkeys.size(); ++j) {
+      if( ninstances[j]>0 ) { outputcomment=true; break; }
+    }
+    if( outputcomment ) {
+      reducedline += "    # Action input conctinues with ";
+      for(unsigned  j=0; j<numberedkeys.size(); ++j) {
+        std::string num; Tools::convert( ninstances[j], num );
+        if( ninstances[j]>0 ) reducedline += num + " further " + numberedkeys[j] + "n keywords, ";
+      }
+    }
+    savedInputLines.push_back( reducedline );
+  } else savedInputLines.push_back( line );
+}
+
 const std::string & ActionShortcut::getShortcutLabel() const {
   return shortcutlabel;
 }
 
 std::vector<std::string> ActionShortcut::getSavedInputLines() const {
   return savedInputLines;
+}
+
+std::vector<std::string> ActionShortcut::getSavedOutputs() const {
+  return savedOutputs;
 }
 
 std::string ActionShortcut::convertInputLineToString() {

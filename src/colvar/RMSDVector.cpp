@@ -40,7 +40,7 @@ namespace colvar {
 PLUMED_REGISTER_ACTION(RMSDVector,"RMSD_VECTOR")
 
 void RMSDVector::registerKeywords(Keywords& keys) {
-  ActionWithVector::registerKeywords(keys); keys.use("ARG");
+  ActionWithVector::registerKeywords(keys); keys.use("ARG"); keys.setDisplayName("RMSD");
   keys.add("compulsory","TYPE","SIMPLE","the manner in which RMSD alignment is performed.  Should be OPTIMAL or SIMPLE.");
   keys.add("compulsory","ALIGN","1.0","the weights to use when aligning to the reference structure");
   keys.add("compulsory","DISPLACE","1.0","the weights to use when calculating the displacement from the reference structure");
@@ -49,6 +49,7 @@ void RMSDVector::registerKeywords(Keywords& keys) {
   keys.addFlag("DISPLACEMENT",false,"Calculate the vector of displacements instead of the length of this vector");
   keys.addOutputComponent("disp","DISPLACEMENT","the vector of displacements for the atoms");
   keys.addOutputComponent("dist","DISPLACEMENT","the RMSD distance the atoms have moved");
+  keys.setValueDescription("a vector containing the RMSD between the instantaneous structure and each of the reference structures that were input");
 }
 
 RMSDVector::RMSDVector(const ActionOptions&ao):

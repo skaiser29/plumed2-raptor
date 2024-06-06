@@ -240,9 +240,9 @@ void PIV::registerKeywords( Keywords& keys )
   keys.add("numbered","SWITCH","The switching functions parameter."
            "You should specify a Switching function for all PIV blocks."
            "Details of the various switching "
-           "functions you can use are provided on \\ref switchingfunction.");
+           "functions you can use are provided on switchingfunction.");
   keys.add("compulsory","PRECISION","the precision for approximating reals with integers in sorting.");
-  keys.add("compulsory","REF_FILE","PDB file name that contains the \\f$i\\f$th reference structure.");
+  keys.add("compulsory","REF_FILE","PDB file name that contains the ith reference structure.");
   keys.add("compulsory","PIVATOMS","Number of atoms to use for PIV.");
   keys.add("compulsory","SORT","Whether to sort or not the PIV block.");
   keys.add("compulsory","ATOMTYPES","The atom types to use for PIV.");
@@ -261,6 +261,7 @@ void PIV::registerKeywords( Keywords& keys )
   keys.add("optional","NL_STRIDE","Update neighbor lists every NL_STRIDE steps.");
   keys.add("optional","NL_SKIN","The maximum atom displacement tolerated for the neighbor lists update.");
   keys.reset_style("SWITCH","compulsory");
+  keys.setValueDescription("the PIV-distance");
 }
 
 PIV::PIV(const ActionOptions&ao):

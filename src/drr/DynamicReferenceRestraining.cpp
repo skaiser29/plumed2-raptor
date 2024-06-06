@@ -250,7 +250,7 @@ void DynamicReferenceRestraining::registerKeywords(Keywords &keys) {
   keys.add("optional", "KAPPA", "specifies that the restraint is harmonic and "
            "what the values of the force constants on "
            "each of the variables are (default to "
-           "\\f$k_BT\\f$/(GRID_SPACING)^2)");
+           "k_BT/(GRID_SPACING)^2)");
   keys.add("compulsory", "TAU", "0.5", "specifies relaxation time on each of "
            "variables are, similar to "
            "extended Time Constant in Colvars");
@@ -309,7 +309,6 @@ void DynamicReferenceRestraining::registerKeywords(Keywords &keys) {
                "to a single file rather than multiple .drrstate files. "
                "This option is effective only when textOutput is on.");
   keys.add("optional","FMT","specify format for outfiles files (useful for decrease the number of digits in regtests)");
-  componentsAreNotOptional(keys);
   keys.addOutputComponent(
     "_fict", "default",
     "one or multiple instances of this quantity can be referenced "

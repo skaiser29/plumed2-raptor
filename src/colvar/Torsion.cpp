@@ -132,7 +132,7 @@ typedef MultiColvarTemplate<Torsion> TorsionMulti;
 PLUMED_REGISTER_ACTION(TorsionMulti,"TORSION_VECTOR")
 
 void Torsion::registerKeywords(Keywords& keys) {
-  Colvar::registerKeywords( keys );
+  Colvar::registerKeywords( keys ); keys.setDisplayName("TORSION");
   keys.add("atoms-1","ATOMS","the four atoms involved in the torsional angle");
   keys.add("atoms-2","AXIS","two atoms that define an axis.  You can use this to find the angle in the plane perpendicular to the axis between the vectors specified using the VECTORA and VECTORB keywords.");
   keys.add("atoms-2","VECTORA","two atoms that define a vector.  You can use this in combination with VECTOR2 and AXIS");
@@ -141,6 +141,7 @@ void Torsion::registerKeywords(Keywords& keys) {
   keys.add("atoms-3","VECTOR2","two atoms that define a vector.  You can use this in combination with VECTOR1 and AXIS");
   keys.addFlag("COSINE",false,"calculate cosine instead of dihedral");
   keys.add("hidden","NO_ACTION_LOG","suppresses printing from action on the log");
+  keys.setValueDescription("the TORSION involving these atoms");
 }
 
 Torsion::Torsion(const ActionOptions&ao):

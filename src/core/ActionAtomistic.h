@@ -138,8 +138,12 @@ public:
   void parseAtomList(const std::string&key,std::vector<AtomNumber> &t);
 /// Parse an list of atom with a numbred keyword
   void parseAtomList(const std::string&key,const int num, std::vector<AtomNumber> &t);
-/// Convert a set of read in strings into an atom list (this is used in parseAtomList)
+/// Interpret the atom selection.  Just a wrapper to the static function with four arguments called interpretAtomList that passes xpos and this.
   void interpretAtomList( std::vector<std::string>& strings, std::vector<AtomNumber> &t);
+/// Convert a set of read in strings into an atom list (this is used in parseAtomList)
+  static void interpretAtomList( std::vector<std::string>& strings, const std::vector<Value*>& xpos, Action* action, std::vector<AtomNumber> &t);
+/// This gets std::vector that contain the PLMD::Value objects that contain xpositions, ypositions, zpositions, masses and charges
+  static void getAtomValuesFromPlumedObject( const PlumedMain& plumed, std::vector<Value*>& xpos, std::vector<Value*>& ypos, std::vector<Value*>& zpos, std::vector<Value*>& masv, std::vector<Value*>& chargev );
 /// Change the box shape
   void changeBox( const Tensor& newbox );
 /// Get reference to Pbc

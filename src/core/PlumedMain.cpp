@@ -527,18 +527,18 @@ void PlumedMain::cmd(std::string_view word,const TypesafePtr & val) {
       break;
       case cmd_read:
         CHECK_INIT(initialized,word);
-        if(val)readInputFile(val.get<const char*>());
+        if(val)readInputFile(val.getCString());
         else   readInputFile("plumed.dat");
         break;
       case cmd_readInputLine:
         CHECK_INIT(initialized,word);
         CHECK_NOTNULL(val,word);
-        readInputLine(val.get<const char*>());
+        readInputLine(val.getCString());
         break;
       case cmd_readInputLines:
         CHECK_INIT(initialized,word);
         CHECK_NOTNULL(val,word);
-        readInputLines(val.get<const char*>());
+        readInputLines(val.getCString());
         break;
       case cmd_clear:
       {
@@ -624,7 +624,7 @@ void PlumedMain::cmd(std::string_view word,const TypesafePtr & val) {
       case cmd_setPlumedDat:
         CHECK_NOTINIT(initialized,word);
         CHECK_NOTNULL(val,word);
-        plumedDat=val.get<const char*>();
+        plumedDat=val.getCString();
         break;
       case cmd_setMPIComm:
         CHECK_NOTINIT(initialized,word);
@@ -664,6 +664,7 @@ void PlumedMain::cmd(std::string_view word,const TypesafePtr & val) {
           ts = actionSet.selectWithLabel<ActionToPutData*>("timestep");
         }
         if( !ts->setValuePointer("timestep", val ) ) plumed_error();
+        ts->updateUnits( passtools.get() );
       }
       break;
       /* ADDED WITH API==2 */
@@ -674,6 +675,7 @@ void PlumedMain::cmd(std::string_view word,const TypesafePtr & val) {
         readInputLine("kBT: PUT CONSTANT PERIODIC=NO UNIT=energy", true);
         ActionToPutData* kb = actionSet.selectWithLabel<ActionToPutData*>("kBT");
         if( !kb->setValuePointer("kBT", val ) ) plumed_error();
+        kb->updateUnits( passtools.get() );
       }
       break;
       /* ADDED WITH API==3 */
@@ -710,7 +712,7 @@ void PlumedMain::cmd(std::string_view word,const TypesafePtr & val) {
       /* only used for testing */
       case cmd_throw:
         CHECK_NOTNULL(val,word);
-        testThrow(val.get<const char*>());
+        testThrow(val.getCString());
       /* ADDED WITH API==10 */
       case cmd_setNestedExceptions:
         CHECK_NOTNULL(val,word);
@@ -721,7 +723,7 @@ void PlumedMain::cmd(std::string_view word,const TypesafePtr & val) {
       case cmd_setMDEngine:
         CHECK_NOTINIT(initialized,word);
         CHECK_NOTNULL(val,word);
-        MDEngine=val.get<const char*>();
+        MDEngine=val.getCString();
         break;
       case cmd_setLog:
         CHECK_NOTINIT(initialized,word);
@@ -730,7 +732,7 @@ void PlumedMain::cmd(std::string_view word,const TypesafePtr & val) {
       case cmd_setLogFile:
         CHECK_NOTINIT(initialized,word);
         CHECK_NOTNULL(val,word);
-        log.open(val.get<const char*>());
+        log.open(val.getCString());
         break;
       // other commands that should be used after initialization:
       case cmd_setStopFlag:
@@ -1255,14 +1257,16 @@ void PlumedMain::load(const std::string& fileName) {
       extension=libName.substr(n+1);
     if(n!=std::string::npos && n<libName.length())
       base=libName.substr(0,n);
+
     if(extension=="cpp") {
+      libName="./"+base+"."+config::getVersionLong()+"."+config::getSoExt();
 // full path command, including environment setup
 // this will work even if plumed is not in the execution path or if it has been
 // installed with a name different from "plumed"
-      std::string cmd=config::getEnvCommand()+" \""+config::getPlumedRoot()+"\"/scripts/mklib.sh "+libName;
+      std::string cmd=config::getEnvCommand()+" \""+config::getPlumedRoot()+"\"/scripts/mklib.sh -n -o "+libName+" "+fileName;
 
       if(std::getenv("PLUMED_LOAD_ACTION_DEBUG")) log<<"Executing: "<<cmd;
-      else log<<"Compiling: "<<libName;
+      else log<<"Compiling: "<<fileName<<" to "<<libName;
 
       if(comm.Get_size()>0) log<<" (only on master node)";
       log<<"\n";
@@ -1280,9 +1284,10 @@ void PlumedMain::load(const std::string& fileName) {
         if(ret!=0) plumed_error() <<"An error happened while executing command "<<cmd<<"\n";
       }
       comm.Barrier();
-      base="./"+base;
+    } else {
+      libName=base+"."+config::getSoExt();
     }
-    libName=base+"."+config::getSoExt();
+
     // If we have multiple threads (each holding a Plumed object), each of them
     // will load the library, but each of them will only see actions registered
     // from the owned library
@@ -1401,6 +1406,7 @@ void PlumedMain::setUnits( const bool& natural, const Units& u ) {
   passtools->usingNaturalUnits = natural; passtools->units=u;
   std::vector<ActionToPutData*> idata = actionSet.select<ActionToPutData*>();
   for(const auto & ip : idata) ip->updateUnits( passtools.get() );
+  for(const auto & p : actionSet ) p->resetStoredTimestep();
 }
 
 void PlumedMain::startStep() {
@@ -1483,6 +1489,10 @@ void PlumedMain::activateParseOnlyMode() {
 
 bool PlumedMain::parseOnlyMode() const {
   return doParseOnly;
+}
+
+void PlumedMain::getKeywordsForAction( const std::string& action, Keywords& keys ) const {
+  actionRegister().getKeywords( dlloader.getHandles(), action, keys );
 }
 
 #ifdef __PLUMED_HAS_PYTHON

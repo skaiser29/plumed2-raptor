@@ -167,10 +167,11 @@ END
 PLUMED_REGISTER_ACTION(RMSD,"RMSD_SCALAR")
 
 void RMSD::registerKeywords(Keywords& keys) {
-  Colvar::registerKeywords(keys);
+  Colvar::registerKeywords(keys); keys.setDisplayName("RMSD");
   keys.add("compulsory","REFERENCE","a file in pdb format containing the reference structure and the atoms involved in the CV.");
   keys.add("compulsory","TYPE","SIMPLE","the manner in which RMSD alignment is performed.  Should be OPTIMAL or SIMPLE.");
   keys.addFlag("SQUARED",false," This should be set if you want mean squared displacement instead of RMSD ");
+  keys.setValueDescription("the RMSD between the instantaneous structure and the reference structure that was input");
 }
 
 RMSD::RMSD(const ActionOptions&ao):

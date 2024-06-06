@@ -41,6 +41,7 @@ void ActionToGetData::registerKeywords(Keywords& keys) {
   keys.add("compulsory","STRIDE","1","the frequency with which the quantities of interest should be stored");
   keys.add("compulsory","TYPE","value","what do you want to collect for the value can be derivative/force");
   keys.use("ARG");
+  keys.setValueDescription("a copy of the data in the value specified by the ARG keyword");
 }
 
 ActionToGetData::ActionToGetData(const ActionOptions&ao):
@@ -69,7 +70,7 @@ void ActionToGetData::get_rank( const TypesafePtr & dims ) {
 
 void ActionToGetData::get_shape( const TypesafePtr & dims ) {
   if( getPntrToArgument(0)->getRank()==0 ) { dims.set(long(1)); return; }
-  auto dims_=dims.get<long*>( getPntrToArgument(0)->getRank() );
+  auto dims_=dims.get<long*>( { getPntrToArgument(0)->getRank() } );
   for(unsigned j=0; j<getPntrToArgument(0)->getRank(); ++j) dims_[j] = getPntrToArgument(0)->getShape()[j];
 }
 

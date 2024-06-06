@@ -79,8 +79,7 @@ Action::Action(const ActionOptions&ao):
   keywords(ao.keys)
 {
   // Retrieve the timestep and save it
-  ActionWithValue* ts = plumed.getActionSet().selectWithLabel<ActionWithValue*>("timestep");
-  if( ts ) timestep = (ts->copyOutput(0))->get();
+  resetStoredTimestep();
 
   line.erase(line.begin());
   if( !keywords.exists("NO_ACTION_LOG") ) {
@@ -97,7 +96,7 @@ Action::Action(const ActionOptions&ao):
   if(label.length()==0) {
     std::string s; Tools::convert(plumed.getActionSet().size()-plumed.getActionSet().select<ActionForInterface*>().size(),s);
     label="@"+s;
-  }
+  } else if ( label.find(".")!=std::string::npos ) warning("using full stop in an action label should be avaoided as . has a special meaning in PLUMED action labels");
   if( plumed.getActionSet().selectWithLabel<Action*>(label) ) error("label " + label + " has been already used");
   if( !keywords.exists("NO_ACTION_LOG") ) log.printf("  with label %s\n",label.c_str());
   if ( keywords.exists("UPDATE_FROM") ) parse("UPDATE_FROM",update_from);
@@ -114,6 +113,11 @@ Action::Action(const ActionOptions&ao):
       // do nothing, this is the default
     } else error("RESTART should be either YES, NO, or AUTO");
   }
+}
+
+void Action::resetStoredTimestep() {
+  ActionWithValue* ts = plumed.getActionSet().selectWithLabel<ActionWithValue*>("timestep");
+  if( ts ) timestep = (ts->copyOutput(0))->get();
 }
 
 Action::~Action() {

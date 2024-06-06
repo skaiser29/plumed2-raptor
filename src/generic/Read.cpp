@@ -94,6 +94,7 @@ private:
 public:
   static void registerKeywords( Keywords& keys );
   explicit Read(const ActionOptions&);
+  std::string getOutputComponentDescription( const std::string& cname, const Keywords& keys ) const override ;
   void prepare() override;
   void apply() override {}
   void calculate() override;
@@ -111,7 +112,7 @@ void Read::registerKeywords(Keywords& keys) {
   ActionPilot::registerKeywords(keys);
   ActionWithValue::registerKeywords(keys);
   keys.add("compulsory","STRIDE","1","the frequency with which the file should be read.");
-  keys.add("compulsory","EVERY","1","only read every \\f$n\\f$th line of the colvar file. This should be used if the colvar was written more frequently than the trajectory.");
+  keys.add("compulsory","EVERY","1","only read every nth line of the colvar file. This should be used if the colvar was written more frequently than the trajectory.");
   keys.add("compulsory","VALUES","the values to read from the file");
   keys.add("compulsory","FILE","the name of the file from which to read these quantities");
   keys.addFlag("IGNORE_TIME",false,"ignore the time in the colvar file. When this flag is not present read will be quite strict "
@@ -197,6 +198,14 @@ Read::Read(const ActionOptions&ao):
     log.printf("  reading value %s and storing as %s\n",valread[0].c_str(),getLabel().c_str() );
   }
   checkRead();
+}
+
+std::string Read::getOutputComponentDescription( const std::string& cname, const Keywords& keys ) const {
+  plumed_assert( !exists( getLabel() ) );
+  for(unsigned i=0; i<readvals.size(); ++i) {
+    if( readvals[i]->getName().find( cname )!=std::string::npos ) return "values from the column labelled " + readvals[i]->getName() + " in the file named " + filename;
+  }
+  plumed_error(); return "";
 }
 
 std::string Read::getFilename() const {
