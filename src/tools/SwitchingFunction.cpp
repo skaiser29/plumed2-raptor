@@ -288,7 +288,18 @@ void SwitchingFunction::set(const std::string & definition,std::string& errormsg
      a0 = -common * r2 * r2 * (3 * r1 + invr0 * r1 * r1 - r2 - invr0 * r1 * r2);
      dmax = r2;
      dmax_2 = r2 * r2;
-  }    
+  }
+  else if(name=="POLY3") {
+     type = polynomial3;
+     do_division = false;
+     dmax = r0 + d0; dmax_2 = dmax * dmax;
+  }
+  else if(name=="POLY3PLT") {
+     type = polynomial3_plateau;
+     do_division = false;
+     dmax = r0 + d0; dmax_2 = dmax * dmax;
+  }
+    
   else if((name=="MATHEVAL" || name=="CUSTOM")) {
     type=leptontype;
     std::string func;
@@ -365,6 +376,10 @@ std::string SwitchingFunction::description() const {
     ostr<<"tanh";
   } else if(type==modulated_exponential){
      ostr<<"modulated_exponential";
+  } else if(type==polynomial3){
+     ostr<<"polynomial3";
+  } else if(type==polynomial3_plateau){
+     ostr<<"polynomial3_plateau";
   } else if(type==cosinus) {
     ostr<<"cosinus";
   } else if(type==leptontype) {
@@ -525,6 +540,25 @@ double SwitchingFunction::calculate(double distance,double&dfunc)const {
 
 //printf("expo: d0 = %f distance = %f rdist = %f f = %f\n",d0,distance, rdist, result);  //@@@
 
+       }
+    } else if(type == polynomial3) {
+       double t = fabs(rdist) - 0.5;
+       double t2 = t * t;
+       result = (t*(2 * t2 - 1.5) + 0.5);
+       dfunc = static_cast<int>((rdist > 0.0) - (rdist < 0.0)) * (6 * t2 - 1.5);
+    } else if(type == polynomial3_plateau) {
+       if(distance > d0 or distance < -d0) {
+          double rdist_;
+          if(distance < -d0)
+            rdist_ = (distance + d0) * invr0;
+          else rdist_ = rdist; // rdist = (distance + d0) * invr0
+          double t = fabs(rdist_) - 0.5;
+          double t2 = t * t;
+          result = (t*(2 * t2 - 1.5) + 0.5);
+          dfunc = static_cast<int>((rdist_ > 0.0) - (rdist_ < 0.0))
+                  * (6 * t2 - 1.5);
+       } else {
+          result = 1.0; dfunc = 0.0;
        }
     } else if(type==leptontype) {
       const unsigned t=OpenMP::getThreadNum();

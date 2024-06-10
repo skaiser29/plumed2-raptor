@@ -45,7 +45,7 @@ class SwitchingFunction {
 /// This is to indicate whether deriv needs division
   bool do_division;
 /// Type of function
-  enum {rational,exponential,gaussian,smap,cubic,tanh,cosinus,modulated_exponential,matheval,leptontype,nativeq} type=rational;
+  enum {rational,exponential,gaussian,smap,cubic,tanh,cosinus,modulated_exponential,polynomial3,polynomial3_plateau,matheval,leptontype,nativeq} type=rational;
 /// Inverse of scaling length.
 /// We store the inverse to avoid a division
   double invr0=0.0;
