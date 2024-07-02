@@ -572,7 +572,7 @@ double SwitchingFunction::calculate(double distance,double&dfunc)const {
     dfunc*=invr0;
 // this is because calculate() sets dfunc to the derivative divided times the distance.
 // (I think this is misleading and I would like to modify it - GB)
-    dfunc/=distance;
+    if(do_division) dfunc/=distance;
   }
 
   result=result*stretch+shift;

@@ -18,8 +18,8 @@ void RMDCEC::registerKeywords(Keywords& keys) {
     keys.add("compulsory","WX","max number of protons each heavy atom can accept");
     keys.add("compulsory","MOLID","molecular id for heavy atoms");
     //keys.add("optional","KAPPA","The exponential parameter for the switching function");
-    //keys.add("optional","RLOWER","The inner cutoff for the switching function");
-    //keys.add("optional","RUPPER","The outter cutoff for the switching function");
+    keys.add("optional","RLOWER","The inner cutoff for the switching function");
+    keys.add("optional","RUPPER","The outter cutoff for the switching function");
     keys.add("compulsory","SWITCH","switching function to be used");
     keys.add("optional","SWITCHROO","switching function to be used");
     //keys.add("atoms","PAIRS","Heavy Atoms invloved in the correction");
